@@ -6,6 +6,11 @@
 #include "input.h"
 
 
+void SysTickHandler()
+{
+}
+
+
 void static render()
 {
   int  x = 0;
@@ -19,6 +24,9 @@ void static render()
 void SysTick_main()
 {
   InputEvent  ev;
+
+  SysTick_Config( SYSTICK_MAXCOUNT);
+
   while( should_run)
   {
     check_event( &ev);
