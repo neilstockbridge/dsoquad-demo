@@ -24,6 +24,7 @@ undone before returning from the experimental main method.
 
 extern void buttons_main();
 extern void SysTick_main();
+extern void WFE_main();
 
 typedef struct
 {
@@ -34,8 +35,9 @@ Experiment;
 
 Experiment static experiment[] =
 {
-  {name:"buttons", main:buttons_main},
-  {name:"SysTick", main:SysTick_main},
+  {"WFE",     WFE_main},
+  {"SysTick", SysTick_main},
+  {"buttons", buttons_main},
 };
 
 int  experiment_cursor = 0;
@@ -75,11 +77,21 @@ void db( char *message)
 }
 
 
+int strlen( char *s)
+{
+  int  len;
+  for ( len = 0;  *s != '\0';  len += 1, s += 1);
+  return len;
+}
+
+
 void render()
 {
-  int  x = 0;
+  char static *blank_line = "                                                  ";
   int  y = SCREEN_HEIGHT - FONT_HEIGHT;
-  __Display_Str( x, y, WHITE, 1, experiment[experiment_cursor].name);
+  __Display_Str( 0, y, WHITE, 1, experiment[experiment_cursor].name);
+  int  len = strlen( experiment[experiment_cursor].name);
+  __Display_Str( 8*len, y, WHITE, 0, blank_line + len);
 }
 
 
@@ -131,7 +143,7 @@ int main()
         break;
       case RROCKER_LEFT:
         if ( INPUT_RELEASED == ev.state)
-          experiment_cursor = (experiment_cursor - 1) % ITEMS_IN_ARRAY( experiment);
+          experiment_cursor = (experiment_cursor - 1 + ITEMS_IN_ARRAY( experiment)) % ITEMS_IN_ARRAY( experiment);
         break;
       case RROCKER_RIGHT:
         if ( INPUT_RELEASED == ev.state)

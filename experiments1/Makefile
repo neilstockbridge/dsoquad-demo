@@ -3,7 +3,7 @@
 
 NAME = DEMO1
 
-PARTS = buttons.o SysTick.o input.o main.o
+PARTS = WFE.o buttons.o SysTick.o input.o main.o
 
 # NOTE: Comment out APP4.HEX if this app is larger than 32kB
 DELIVERABLES = APP1.HEX  APP2.HEX  APP3.HEX  APP4.HEX
