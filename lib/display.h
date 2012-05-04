@@ -1,6 +1,6 @@
 
-#ifndef __COLORS_H
-#define __COLORS_H
+#ifndef __DISPLAY_H
+#define __DISPLAY_H
 
 #define  BLACK  0x0000
 #define  WHITE  0xffff
