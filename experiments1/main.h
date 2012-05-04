@@ -6,6 +6,7 @@
 
 
 #include "stdbool.h"
+#include "core.h"
 
 
 #define  NULL  0
@@ -15,6 +16,8 @@
 
 
 extern bool volatile  should_run;
+
+extern VoidFunction *counter3_overflow_hook;
 
 
 extern

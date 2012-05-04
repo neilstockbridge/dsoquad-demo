@@ -16,15 +16,14 @@ undone before returning from the experimental main method.
 
 #include "BIOS.h"
 #include "stdbool.h"
-#include "colors.h"
+#include "core.h"
+#include "interrupts.h"
 #include "hex.h"
 #include "input.h"
+#include "display.h"
+#include "dump.h"
 #include "main.h"
 
-
-extern void buttons_main();
-extern void SysTick_main();
-extern void WFE_main();
 
 typedef struct
 {
@@ -33,11 +32,19 @@ typedef struct
 }
 Experiment;
 
+extern void buttons_main();
+extern void SysTick_main();
+extern void WFE_main();
+extern void glyphs_main();
+extern void font_perf_main();
+
 Experiment static experiment[] =
 {
-  {"WFE",     WFE_main},
-  {"SysTick", SysTick_main},
-  {"buttons", buttons_main},
+  {"WFE",       WFE_main},
+  {"SysTick",   SysTick_main},
+  {"buttons",   buttons_main},
+  {"glyphs",    glyphs_main},
+  {"font_perf", font_perf_main},
 };
 
 int  experiment_cursor = 0;
@@ -47,10 +54,11 @@ int  experiment_cursor = 0;
 // continue to run or to instead drop out of its main loop
 bool volatile  should_run = false;
 
-// Pull this in from BIOS.h
-extern VoidFunction *counter3_overflow_handler;
 
-void when_counter3_overflows()
+// This function is for experiments to run code when counter3 overflows:
+VoidFunction *counter3_overflow_hook = NULL;
+
+void static when_counter3_overflows()
 {
   // The buttons are read only every 20 milliseconds to overcome switch bounce
   u8 static  when_to_read_inputs = 20; // milliseconds from now
@@ -60,6 +68,9 @@ void when_counter3_overflows()
     when_to_read_inputs = 20;
     check_inputs();
   }
+  // Let the experiment hang code off the counter3 overflow interrupt too:
+  if ( counter3_overflow_hook != NULL)
+    counter3_overflow_hook();
 }
 
 
@@ -77,46 +88,13 @@ void db( char *message)
 }
 
 
-int strlen( char *s)
-{
-  int  len;
-  for ( len = 0;  *s != '\0';  len += 1, s += 1);
-  return len;
-}
-
-
 void render()
 {
   char static *blank_line = "                                                  ";
   int  y = SCREEN_HEIGHT - FONT_HEIGHT;
   __Display_Str( 0, y, WHITE, 1, experiment[experiment_cursor].name);
   int  len = strlen( experiment[experiment_cursor].name);
-  __Display_Str( 8*len, y, WHITE, 0, blank_line + len);
-}
-
-
-u8 *dump_cursor = (u8*) 0x20003000;
-
-void render_dump()
-{
-  // 400x240 screen with 8x14 glyphs gives a character matrix of 50x17
-  // Show the address on the left (8 digits) then space then 8x 2 digits plus space then 8 characters
-  char  line[] = "12345678 12 12 12 12-12 12 12 12 abcdefgh";
-  //char  line[] = "1234567812345678-1234567812345678 abcdefghijklmnop";
-  int  row;
-  for ( row = 0;  row < 16;  row += 1)
-  {
-    u8 *ptr = dump_cursor + 8 * row;
-    u32_to_hex( (u32) ptr, line);
-    int  ofs;
-    for ( ofs = 0;  ofs < 8;  ofs += 1)
-    {
-      u8  value = ptr[ ofs];
-      u8_to_hex( value, &line[ 9 + 3*ofs]);
-      line[ 9 + 3*8 + ofs] = 32 <= value && value < 127 ? value : '.';
-    }
-    __Display_Str( 0, SCREEN_HEIGHT - FONT_HEIGHT*1 - FONT_HEIGHT * row - FONT_HEIGHT, WHITE, 0, line);
-  }
+  __Display_Str( FONT_WIDTH*len, y, WHITE, 0, blank_line + len);
 }
 
 
@@ -124,7 +102,7 @@ int main()
 {
   InputEvent  ev;
 
-  counter3_overflow_handler = when_counter3_overflows;
+  attach_handler( TIMER3_INTERRUPT, when_counter3_overflows);
   __Set( BEEP_VOLUME, 0);
   __Clear_Screen( BLACK);
 
@@ -163,6 +141,7 @@ int main()
     if ( should_run)
     {
       experiment[experiment_cursor].main();
+      counter3_overflow_hook = NULL;
       __Clear_Screen( BLACK);
     }
   }

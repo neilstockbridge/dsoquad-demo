@@ -3,7 +3,7 @@
 
 NAME = DEMO1
 
-PARTS = WFE.o buttons.o SysTick.o input.o main.o
+PARTS = interrupts.o core.o input.o hex.o dump.o WFE.o SysTick.o buttons.o glyphs.o font_perf.o main.o
 
 # NOTE: Comment out APP4.HEX if this app is larger than 32kB
 DELIVERABLES = APP1.HEX  APP2.HEX  APP3.HEX  APP4.HEX
@@ -14,7 +14,7 @@ LFLAGS = -L ../support
 #LIBS = -lm
 
 # "-I support" is so that make can find the DSO Quad platform files
-CFLAGS = -I . -I ../support
+CFLAGS = -I . -I ../support -I ../lib
 
 # Processor type
 CFLAGS += -mcpu=cortex-m3 -mthumb -mno-thumb-interwork
@@ -35,7 +35,7 @@ LFLAGS += -nostartfiles -Wl,-Map=$(TDIR)/$(NAME).map -eReset_Handler
 TDIR = /tmp/$(NAME)
 
 # Add the support files to the list of objects to build:
-PARTS += startup.o BIOS.o Interrupt.o hex.o
+PARTS += startup.o BIOS.o Interrupt.o
 
 # Names of the toolchain programs
 CC      = arm-none-eabi-gcc
@@ -43,7 +43,7 @@ OBJCOPY = arm-none-eabi-objcopy
 SIZE    = arm-none-eabi-size
 
 # Tell make where to find transitional files:
-VPATH = ../support:experiments:$(TDIR)
+VPATH = ../support:../lib:experiments:$(TDIR)
 
 # How to make .HEX files from .elf files:
 %.HEX: %.elf

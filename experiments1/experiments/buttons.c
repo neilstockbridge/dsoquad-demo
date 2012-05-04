@@ -1,7 +1,7 @@
 
 #include "BIOS.h"
 #include "hex.h"
-#include "colors.h"
+#include "display.h"
 #include "main.h"
 #include "input.h"
 

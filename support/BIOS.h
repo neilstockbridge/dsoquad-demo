@@ -9,10 +9,6 @@
 
 #include "stm32f10x.h"
 
-
-typedef void VoidFunction();
-
-
 //============================= Flash space allocation =================================
 
 #define BIN_BASE                ((u32)(0x0802C000)) // Size < 68KB  

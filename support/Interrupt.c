@@ -6,9 +6,6 @@
 #include "BIOS.h"
 
 
-VoidFunction *counter3_overflow_handler = 0;
-
-
 void NMIException(void)
 {}
 
@@ -139,12 +136,5 @@ void USB_HP_CAN_TX_IRQHandler(void)
 void USB_LP_CAN_RX0_IRQHandler(void)
 {
   __USB_Istr();
-}
-
-void TIM3_IRQHandler(void)
-{
-  __Set( KEY_IF_RST, 0); // Clear TIM3 interrupt flag
-  if ( counter3_overflow_handler)
-    counter3_overflow_handler();
 }
 
