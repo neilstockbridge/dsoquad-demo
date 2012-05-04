@@ -6,8 +6,8 @@
 //   input that changed.  "state" will be INPUT_PRESSED or INPUT_RELEASED
 //
 
-#ifndef __BUTTONS_H
-#define __BUTTONS_H
+#ifndef __INPUT_H
+#define __INPUT_H
 
 
 typedef enum {
