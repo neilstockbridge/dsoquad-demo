@@ -14,14 +14,8 @@ void WFE_main()
   while( should_run)
   {
     check_event( &ev);
-    switch( ev.input)
-    {
-      case BUTTON4:
-        should_run = false;
-        break;
-      default:
-        break;
-    }
+    if ( BUTTON4 == ev.input)
+      should_run = false;
     __WFE();
   }
 }
