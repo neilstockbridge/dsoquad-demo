@@ -32,9 +32,10 @@ typedef struct
 }
 Experiment;
 
-extern void buttons_main();
-extern void SysTick_main();
 extern void WFE_main();
+extern void SysTick_main();
+extern void buttons_main();
+extern void backlight_main();
 extern void glyphs_main();
 extern void font_perf_main();
 
@@ -43,6 +44,7 @@ Experiment static experiment[] =
   {"WFE",       WFE_main},
   {"SysTick",   SysTick_main},
   {"buttons",   buttons_main},
+  {"backlight", backlight_main},
   {"glyphs",    glyphs_main},
   {"font_perf", font_perf_main},
 };

@@ -6,6 +6,9 @@
 #define  NULL  0
 
 
+#define  ITEMS_IN_ARRAY( a)  ( sizeof(a) / sizeof(a[0]) )
+
+
 typedef void VoidFunction();
 
 
