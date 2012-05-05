@@ -34,6 +34,7 @@ Experiment;
 
 extern void WFE_main();
 extern void SysTick_main();
+extern void Get_main();
 extern void buttons_main();
 extern void backlight_main();
 extern void glyphs_main();
@@ -43,10 +44,11 @@ Experiment static experiment[] =
 {
   {"WFE",       WFE_main},
   {"SysTick",   SysTick_main},
+  {"Get",       Get_main},
   {"buttons",   buttons_main},
   {"backlight", backlight_main},
   {"glyphs",    glyphs_main},
-  {"font_perf", font_perf_main},
+  {"font-perf", font_perf_main},
 };
 
 int  experiment_cursor = 0;

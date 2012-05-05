@@ -32,5 +32,8 @@ void draw_text( int left, int bottom, u16 color, int mode, char const *text)
     left += FONT_WIDTH;
     bf ^= 1;
   }
+  // Shouldn't really be required but some buggy routines initiate DMA transfer
+  // without waiting for DMA to be free first:
+  __LCD_DMA_Ready();
 }
 
