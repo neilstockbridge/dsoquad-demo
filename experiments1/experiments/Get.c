@@ -8,7 +8,7 @@
 #include "hex.h"
 
 
-#define  COLUMNS  ( SCREEN_WIDTH / FONT_HEIGHT)
+#define  COLUMNS  ( SCREEN_WIDTH / FONT_WIDTH)
 #define  LABEL_X  ( FONT_WIDTH * (COLUMNS - (13+1+8)) / 2 )  // 13 is "Serial Number".length
 #define  VALUE_X  ( LABEL_X + FONT_WIDTH*(13+1) )
 
