@@ -39,6 +39,7 @@ extern void buttons_main();
 extern void backlight_main();
 extern void glyphs_main();
 extern void font_perf_main();
+extern void icon_main();
 
 Experiment static experiment[] =
 {
@@ -49,6 +50,7 @@ Experiment static experiment[] =
   {"backlight", backlight_main},
   {"glyphs",    glyphs_main},
   {"font-perf", font_perf_main},
+  {"icon",      icon_main},
 };
 
 int  experiment_cursor = 0;
