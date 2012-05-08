@@ -40,6 +40,7 @@ extern void backlight_main();
 extern void glyphs_main();
 extern void font_perf_main();
 extern void icon_main();
+extern void temperature_main();
 
 Experiment static experiment[] =
 {
@@ -51,6 +52,7 @@ Experiment static experiment[] =
   {"glyphs",    glyphs_main},
   {"font-perf", font_perf_main},
   {"icon",      icon_main},
+  {"temperature", temperature_main},
 };
 
 int  experiment_cursor = 0;

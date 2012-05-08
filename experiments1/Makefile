@@ -3,7 +3,7 @@
 
 NAME = DEMO1
 
-PARTS = interrupts.o core.o input.o display.o image.o hex.o dump.o WFE.o SysTick.o Get.o buttons.o backlight.o glyphs.o font_perf.o icon.o main.o
+PARTS = interrupts.o core.o input.o display.o image.o hex.o dump.o WFE.o SysTick.o Get.o buttons.o backlight.o glyphs.o font_perf.o icon.o temperature.o main.o
 
 # NOTE: Comment out APP4.HEX if this app is larger than 32kB
 DELIVERABLES = APP1.HEX  APP2.HEX  APP3.HEX  APP4.HEX
