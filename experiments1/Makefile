@@ -66,7 +66,7 @@ VPATH = ../support:../lib:experiments:$(TDIR)
 all: hexes
 
 hexes: $(DELIVERABLES)
-	$(SIZE) APP1.elf
+	if [ -e APP1.elf ]; then $(SIZE) APP1.elf; fi
 
 $(TDIR):
 	mkdir $(TDIR)
