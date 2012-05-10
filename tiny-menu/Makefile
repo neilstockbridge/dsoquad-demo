@@ -3,10 +3,9 @@
 
 NAME = tiny-menu
 
-PARTS = interrupts.o core.o input.o display.o image.o hex.o dump.o main.o
+PARTS = interrupts.o input.o hex.o main.o
 
-# NOTE: Comment out APP4.HEX if this app is larger than 32kB
-DELIVERABLES = APP1.HEX  APP2.HEX  APP3.HEX  APP4.HEX
+DELIVERABLES = PAGE16.HEX
 
 # Options for the linker.  "-L support" helps the linker find the .lds files
 LFLAGS = -L ../support
@@ -62,11 +61,10 @@ VPATH = ../support:../lib:experiments:$(TDIR)
 .S.o: | $(TDIR)
 	$(CC) $(AFLAGS) -c -o $@ $<
 
-#all: APP1.elf
 all: hexes
 
 hexes: $(DELIVERABLES)
-	if [ -e APP1.elf ]; then $(SIZE) APP1.elf; fi
+	if [ -e PAGE16.elf ]; then $(SIZE) PAGE16.elf; fi
 
 $(TDIR):
 	mkdir $(TDIR)
