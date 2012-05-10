@@ -230,7 +230,7 @@ extern T_attr *T_Attr;
  void __Row_DMA_Ready(void);                    // Wait row base data DMA ready
  
  u32  __Read_FIFO(void);                        // Read data from FIFO & Ptr+1
- void __Display_Str(u16 x0, u16 y0, u16 Color, u8 Mode, char *s);                      
+ void __Display_Str(u16 x0, u16 y0, u16 Color, u8 Mode, char const *s);                      
  
  u32  __Input_Lic(u16 x0, u8 y0);               //Return: 32Bits Licence 
  u32  __GetDev_SN(void);                        // Get 32bits Device Serial Number

@@ -1,6 +1,6 @@
 
 #include "BIOS.h"
-#include "main.h"
+#include "core.h"
 #include "input.h"
 
 
