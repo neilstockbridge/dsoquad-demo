@@ -1,4 +1,4 @@
-
+ 
 This is a demonstration of a proportional typeface for DSO Quad applications along with a utility to generate embedded font data from a glyph sheet.
 
 
@@ -12,3 +12,6 @@ To generate a typeface suitable for embedding, invoke:
 
 ..where *nice_font* is the name of the variable in the generated source code.
 
+Note that this demo is 2826 bytes in size and installs to page 18 by default, which requires [tiny-menu] to launch.
+
+  [tiny-menu]: ../tiny-menu
