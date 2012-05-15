@@ -18,13 +18,13 @@ EventQueue;
 EventQueue volatile  event_queue = { oldest:0, cursor:0};
 
 
-u8 inline  advanced( u8 index)
+u8 static advanced( u8 index)
 {
   return (index + 1) & (ITEMS_IN_ARRAY(event_queue.event) - 1);
 }
 
 
-void inline queue_event( Input input, u8 state)
+void static queue_event( Input input, u8 state)
 {
   u8  advanced_cursor = advanced( event_queue.cursor);
   // If the cursor would refer to the same slot as "oldest" once advanced then
@@ -54,6 +54,7 @@ void check_event( InputEvent *event)
   }
   else {
     event->input = NO_INPUT;
+    event->state = NO_INPUT;
   }
   __enable_irq();
 }
@@ -78,7 +79,9 @@ uc16  mask_for_input[] =
 void check_inputs()
 {
   u32  input_state = __Get( KEY_STATUS);
-  u32 static  state_last_time = 0xff48;
+  u32 static  state_last_time = 0;
+  if ( 0 == state_last_time)
+    state_last_time = input_state;
   u32  changes = state_last_time ^ input_state;
   if ( changes)
   {

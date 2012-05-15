@@ -14,9 +14,13 @@
 typedef void VoidFunction();
 
 
+#ifndef __EMULATED
+typedef  int  size_t;
+
 extern
 size_t strlen( char const *s)
 ;
+#endif
 
 
 #endif
