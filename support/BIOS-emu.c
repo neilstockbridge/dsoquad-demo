@@ -21,6 +21,8 @@ Interesting threading.
 
 
 SDL_Surface static *screen;
+SDL_Surface static *glyph_sheet;
+
 
 
 void SDL_die( char *message)
@@ -87,6 +89,8 @@ void static initialize()
   counter3_thread_should_run = true;
   if ( pthread_create( &counter3_thread, NULL, counter3_thread_main, NULL) )
     SDL_die("Unable to create thread");
+
+  glyph_sheet = SDL_LoadBMP("BIOS-glyphs.bmp");
 }
 
 
@@ -113,6 +117,16 @@ void __disable_irq()
 }
 
 
+void __CTR_HP()
+{
+}
+
+
+void __USB_Istr()
+{
+}
+
+
 u32 static keys_held();
 
 void __WFE()
@@ -128,7 +142,7 @@ void __WFE()
 //
 void set_pixel( Sint16 x, Sint16 y, Uint16 color)
 {
-  Uint16  *pixel_row = (Uint16 *) (screen->pixels + screen->pitch * y);
+  Uint16  *pixel_row = (Uint16 *) ( screen->pixels + screen->pitch * (screen->h - 1 -  y) );
   Uint16  cl = SDL_MapRGB( screen->format, RED_IN(color), GRN_IN(color), BLU_IN(color));
   pixel_row[ x] = cl;
 }
@@ -141,25 +155,27 @@ void __Clear_Screen( u16 color)
 }
 
 
-void __Display_Str( u16 x, u16 y, u16 color, u8 mode, char const *text)
+void __Display_Str( u16 left, u16 bottom, u16 color, u8 mode, char const *text)
 {
+  char  code;
+
   ensure_initialized();
-  // FIXME: maybe have a surf of glyphs and blit from them
+
+  // FIXME: Support "color" and "mode"
+  SDL_Rect  glyph = { w:FONT_WIDTH, h:FONT_HEIGHT };
+  SDL_Rect  target = { x:left,  y:(SCREEN_HEIGHT - bottom - FONT_HEIGHT)};
+  while( (code = *text) != '\0')
+  {
+    if ( code < ' '  ||  127 < code)
+      code = 127;
+    glyph.x = FONT_WIDTH * ( (code - ' ') % 32);
+    glyph.y = FONT_HEIGHT * ( (code - ' ') / 32);
+    SDL_BlitSurface( glyph_sheet, &glyph, screen, &target);
+    text += 1;
+    target.x += FONT_WIDTH;
+  }
+
   usleep( 1);
-}
-
-
-u16  block_left;
-u16  block_right;
-u16  block_bottom;
-u16  block_top;
-
-void __LCD_Set_Block( u16 left, u16 right, u16 bottom, u16 top)
-{
-  block_left = left;
-  block_right = right;
-  block_bottom = bottom;
-  block_top = top;
 }
 
 
@@ -168,24 +184,54 @@ void __LCD_DMA_Ready()
 }
 
 
+u16  block_left;
+u16  block_right;
+u16  block_bottom;
+u16  block_top;
+u16  cursor_x;
+u16  cursor_y;
+
+void __LCD_Set_Block( u16 left, u16 right, u16 bottom, u16 top)
+{
+  block_left = left;
+  block_right = right;
+  block_bottom = bottom;
+  block_top = top;
+  cursor_x = block_left;
+  cursor_y = block_bottom;
+}
+
+
+void static advance_cursor()
+{
+  if ( cursor_y < block_top)
+    cursor_y += 1;
+  else {
+    cursor_y = block_bottom;
+    if ( cursor_x < block_right)
+      cursor_x += 1;
+    else
+      cursor_x = block_left;
+  }
+}
+
+
+void __LCD_SetPixl( u16 color)
+{
+  SDL_LockSurface( screen);
+  set_pixel( cursor_x, cursor_y, color);
+  SDL_UnlockSurface( screen);
+  advance_cursor();
+}
+
+
 void __LCD_Copy( uc16 *pixel, u16 pixels)
 {
-  int  x = block_left;
-  int  y = block_bottom;
-
   SDL_LockSurface( screen);
   while ( 0 < pixels)
   {
-    set_pixel( x, (screen->h - 1 - y), *pixel);
-    if ( y < block_top)
-      y += 1;
-    else {
-      y = block_bottom;
-      if ( x < block_right)
-        x += 1;
-      else
-        x = block_left;
-    }
+    set_pixel( cursor_x, cursor_y, *pixel);
+    advance_cursor();
     pixel += 1;
     pixels -= 1;
   }

@@ -3,7 +3,7 @@
 
 NAME = tiny-menu
 
-PARTS = interrupts.o input.o hex.o main.o
+PARTS = input.o hex.o main.o
 
 DELIVERABLES = PAGE16.HEX
 
@@ -24,6 +24,8 @@ CFLAGS += -fno-common -Os -std=gnu99
 # Compiler warnings
 CFLAGS += -Wall -Wno-unused
 
+CFLAGS += $(DEBUG)
+
 # Default linker arguments (disables GCC-provided startup.c, creates .map file)
 LFLAGS += -nostartfiles -Wl,-Map=$(TDIR)/$(NAME).map -eReset_Handler
 
@@ -34,7 +36,7 @@ LFLAGS += -nostartfiles -Wl,-Map=$(TDIR)/$(NAME).map -eReset_Handler
 TDIR = /tmp/$(NAME)
 
 # Add the support files to the list of objects to build:
-PARTS += startup.o BIOS.o Interrupt.o
+PARTS += startup.o BIOS.o
 
 # Names of the toolchain programs
 CC      = arm-none-eabi-gcc
