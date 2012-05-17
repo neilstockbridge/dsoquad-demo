@@ -21,6 +21,27 @@ void use_font( Font const *f)
 }
 
 
+u16 width_of_text( char const *text)
+{
+  char         code;
+  Glyph const *glyph;
+  u16          width = (*text != '\0') ? 0 : -1; // empty str should be 0 width
+
+  while( (code = *text) != '\0')
+  {
+    if ( code < font->first_character  ||  font->glyphs <= code - font->first_character)
+      code = font->absent_code;
+
+    glyph = &font->glyph[ code - font->first_character];
+    width += 1 + glyph->width;
+
+    text += 1;
+  }
+
+  return width + 1;
+}
+
+
 Glyph const static *draw_char( u16 left, u16 bottom, u16 bg_color, u16 fg_color, char code, u16 *pixel)
 {
   int          x;

@@ -66,7 +66,11 @@ void render_text( u16 x, u16 y, u16 color, u8 mode, char const *text)
 ;
 
 
-// TODO: width_of_text( const char *text); // returns pixels across required to render "text"
+// Provides the number of pixels across required to render "text", including
+// leading and trailing background columns
+extern
+u16 width_of_text( char const *text)
+;
 
 
 #endif
