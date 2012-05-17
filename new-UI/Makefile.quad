@@ -36,7 +36,7 @@ LFLAGS += -nostartfiles -Wl,-Map=$(TDIR)/$(NAME).map -eReset_Handler
 TDIR = /tmp/$(NAME)
 
 # Add the support files to the list of objects to build:
-PARTS += startup.o BIOS.o Interrupt.o
+PARTS += startup.o BIOS.o
 
 # Names of the toolchain programs
 CC      = arm-none-eabi-gcc

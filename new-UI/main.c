@@ -41,12 +41,14 @@ Editors:
  + gen freq: 10, 20 50 100 200 500 1k 2k 5k 10k 20k
  + gen dut: 50-90 in step 10
 
+ + xpos is scrolling thru buff I think
+ + time per div
+ + seems Vthresh & Tthresh can be set regardless of the measuring marks
+
 For each channel:
 
  + off/AC/DC
  + V per div
- + time per div
- + xpos
  + ypos
 
 Displays:
@@ -70,21 +72,11 @@ Displays:
 
 Help text explaining labels
 
-
-There is the concept of "widgets".  Each widget is set up with its location on
-screen and knows how to render itself.  Instead of a monolithic render()
-function, the display can be rendered by instructing each widget in a list to
-render itself.
-
-An *indicator* is a widget that shows some information.
-
-An *editor* is a widget that is attached to either the left or right rocker
-switches and that changes a value in response to input from the switch.
-
 */
 
 #include <stdbool.h>
 #include "BIOS.h"
+#include "core.h"
 #include "input.h"
 #include "UI.h"
 
@@ -111,38 +103,181 @@ void TIM3_IRQHandler(void)
   __Set( KEY_IF_RST, 0);  // Clear TIM3 interrupt flag
 }
 
-
-s8  brightness = 80; // of the screen
-s8  volume = 30;     // of the beeper
-s8  duty_cycle = 50; // for the wave form generator
-
-
-void brightness_changed( Indicator *idct)
+void USB_HP_CAN_TX_IRQHandler(void)
 {
-  PercentContext *ct = idct->context;
+  __CTR_HP();
+}
+
+void USB_LP_CAN_RX0_IRQHandler(void)
+{
+  __USB_Istr();
+}
+
+
+s8  screen_brightness    = 80;
+s8  beep_volume          = 30;
+s8  generator_duty_cycle = 50;
+
+
+u8 static selected_value( SelectContext *ct)
+{
+  return ct->option[ct->selected].value;
+}
+
+#define  PERCENT_CONTEXT( var, mn, mx)  PercentContext const var##_context = { value:&var, min:mn, max:mx, update:var##_changed }
+
+void screen_brightness_changed( PercentContext *ct)
+{
   __Set( BACKLIGHT, *ct->value);
 }
 
-PercentContext  brightness_context = {
-  value:  &brightness,
-  min:    10,
-  max:    100,
-  update: brightness_changed,
-};
+PERCENT_CONTEXT( screen_brightness, 10, 100);
 
 
-void volume_changed( Indicator *idct)
+void beep_volume_changed( PercentContext *ct)
 {
-  PercentContext *ct = idct->context;
   __Set( BEEP_VOLUME, *ct->value);
 }
 
-PercentContext  volume_context = {
-  value:  &volume,
-  min:    0,
-  max:    100,
-  update: volume_changed,
+PERCENT_CONTEXT( beep_volume, 0, 100);
+
+
+void generator_duty_cycle_changed()
+{
+  // TODO
+}
+
+PERCENT_CONTEXT( generator_duty_cycle, 50, 90);
+
+
+#define  SELECT_CONTEXT( var)  SelectContext  var##_context = { option:var##_options, options:ITEMS_IN_ARRAY(var##_options), selected:0, update:var##_changed }
+
+SelectOption const coupling_options[] =
+{
+  { label:"AC", value: 0 },
+  { label:"DC", value: 1 },
+  { label:"off", value: 2 },
 };
+
+void coupling_changed( SelectContext *ct)
+{
+}
+
+SELECT_CONTEXT( coupling);
+
+
+SelectOption const voltage_scaling_options[] =
+{
+  { label:"50mV", value: ADC_50mV },
+  { label:"0.1V", value: ADC_100mV },
+  { label:"0.2V", value: ADC_200mV },
+  { label:"0.5V", value: ADC_500mV },
+  { label:"1V",   value: ADC_1V },
+  { label:"2V",   value: ADC_2V },
+  { label:"5V",   value: ADC_5V },
+  { label:"10V",  value: ADC_10V },
+};
+
+void voltage_scaling_changed( SelectContext *ct)
+{
+}
+
+SELECT_CONTEXT( voltage_scaling);
+
+
+SelectOption const time_per_div_options[] =
+{
+  { label:"0.1us", value: 0 },
+  { label:"0.2us", value: 0 },
+  { label:"0.5us", value: 0 },
+  { label:"1us", value: 0 },
+  { label:"2us", value: 0 },
+  { label:"5us", value: 0 },
+  { label:"10us", value: 0 },
+  { label:"20us", value: 0 },
+  { label:"50us", value: 0 },
+  { label:"100us", value: 0 },
+  { label:"200us", value: 0 },
+  { label:"500us", value: 0 },
+  { label:"1ms", value: 0 },
+  { label:"2ms", value: 0 },
+  { label:"5ms", value: 0 },
+  { label:"10ms", value: 0 },
+  { label:"20ms", value: 0 },
+  { label:"50ms", value: 0 },
+  { label:"100ms", value: 0 },
+  { label:"200ms", value: 0 },
+  { label:"500ms", value: 0 },
+  { label:"1s", value: 0 },
+};
+
+SelectOption const trigger_source_options[] =
+{
+  { label:"Ch A", value: 0x00 },
+  { label:"Ch B", value: 0x08 },
+  { label:"Ch C", value: 0x10 },
+  { label:"Ch D", value: 0x18 },
+  { label:"Unco", value: 0x20 },
+};
+
+SelectOption const trigger_condition_options[] =
+{
+  { label:"falling", value: 0 },
+  { label:"rising", value: 1 },
+  { label:"low", value: 2 },
+  { label:"high", value: 3 },
+  { label:"TL < dT", value: 4 }, // dT = T2 - T1
+  { label:"TL > dT", value: 5 },
+  { label:"TH < dT", value: 6 },
+  { label:"TH > dT", value: 7 },
+};
+
+SelectOption const buffer_size_options[] =
+{
+  { label:"360b", value: 0 },
+  { label:"512b", value: 0 },
+  { label:"1K", value: 0 },
+  { label:"2K", value: 0 },
+  { label:"4K", value: 0 },
+};
+
+SelectOption const capture_mode_options[] =
+{
+  { label:"AUTO", value: 0 },
+  { label:"NORM", value: 0 },
+  { label:"SINGL", value: 0 },
+  { label:"NONE", value: 0 },
+  { label:"SCAN", value: 0 },
+};
+
+SelectOption const generator_waveform_options[] =
+{
+  { label:"square", value: 0 },
+  { label:"triangle", value: 0 },
+  { label:"sawtooth", value: 0 },
+  { label:"sine", value: 0 },
+};
+
+SelectOption const generator_frequency_options[] =
+{
+  { label:"10Hz", value: 0 },
+  { label:"20Hz", value: 0 },
+  { label:"50Hz", value: 0 },
+  { label:"100Hz", value: 0 },
+  { label:"200Hz", value: 0 },
+  { label:"500Hz", value: 0 },
+  { label:"1kHz", value: 0 },
+  { label:"2kHz", value: 0 },
+  { label:"5kHz", value: 0 },
+  { label:"10kHz", value: 0 },
+  { label:"20kHz", value: 0 },
+};
+
+void trigger_source_changed( SelectContext *ct)
+{
+}
+
+SELECT_CONTEXT( trigger_source);
 
 
 int main()
