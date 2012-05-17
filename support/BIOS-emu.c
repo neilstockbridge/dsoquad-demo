@@ -308,11 +308,11 @@ u32 __Get( u8 object)
   {
     case KEY_STATUS:
       return keys_held();
-      break;
+    case BACKLIGHT:
+      return 0;
     default:
       fprintf( stderr, "Unhandled __Get: %hu", object);
       return 0;
-      break;
   }
 }
 
