@@ -1,0 +1,59 @@
+
+# Skeleton Makefile for DSO Quad applications
+
+NAME = new-UI
+
+PARTS = font.o input.o nice_font.o UI.o main.o
+
+DELIVERABLES = $(NAME)
+
+# Options for the linker.  "-L support" helps the linker find the .lds files
+LFLAGS = -L../support
+
+# "-I support" is so that make can find the DSO Quad platform files
+CFLAGS = -I../support -I../lib -I../font-demo/bw
+CFLAGS += $(shell pkg-config --cflags sdl)
+
+# Optimization & debug settings
+CFLAGS += -fno-common -Os -std=gnu99
+
+# Compiler warnings
+CFLAGS += -Wall -Wno-unused
+
+# Avoid including the Cortex-specific headers:
+CFLAGS += -D__EMULATED -D__CM3_CORE_H__ -D__IO= -D__I= # -D__STM32F10x_H
+
+CFLAGS += $(DEBUG)
+
+LIBS = $(shell pkg-config --libs sdl)
+
+.SILENT:
+
+# The directory for .o files and such.  Keep it in RAM for speed and to reduce
+# flash disc wear
+TDIR = /tmp/$(NAME)
+
+# Add the support files to the list of objects to build:
+PARTS += BIOS-emu.o
+
+# Tell make where to find transitional files:
+VPATH = ../support:../lib:../font-demo/bw:$(TDIR)
+
+$(NAME): $(PARTS)
+	$(CC) $(CFLAGS) -o $@ $(PARTS) $(LFLAGS) $(LIBS)
+
+# Rebuild all parts if any header or the Makefile changes:
+.c.o: *.h Makefile.emu
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+.S.o: | $(TDIR)
+	$(CC) $(AFLAGS) -c -o $@ $<
+
+all: $(DELIVERABLES) main.c
+
+$(TDIR):
+	mkdir $(TDIR)
+
+clean:
+	rm -f *.o ../font-demo/bw/font.o $(TDIR)/*.o $(TDIR)/*.map $(DELIVERABLES)
+
