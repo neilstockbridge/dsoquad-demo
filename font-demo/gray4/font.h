@@ -1,7 +1,13 @@
 
 /*
 
-A font with black and white ( no anti-aliasing) glyphs.
+A font where each glyph pixel is one of 4 shades encoded in 2 bits, to provide
+a degree of anti-aliasing.  The four shades are:
+
+  + black
+  + 33%
+  + 67%
+  + white
 
 */
 
@@ -13,14 +19,16 @@ A font with black and white ( no anti-aliasing) glyphs.
 
 
 // This format is packed quite tightly:
-//  + Blank rows and columns are not stored, which is why the width and height
-//    are needed for each glyph
-//  + Glyph pixels are stored in a stream of bits.  Only glyphs themselves are
-//    byte-aligned
+//  + Blank rows and columns are not stored, which is why both the height and
+//    the width are encoded on a per-glyph basis
+//  + Glyph pixels are stored in a stream of ( pairs of) bits.  Only glyphs
+//    themselves are byte-aligned
 //
 // Every glyph gets a blank column at the left AND right ( so that a single
 // reversed char has a border), although the advance is only width+1, so that
 // the next glyph's left border will overwrite the right border of this one.
+//
+// FIXME: Only the last glyph should render it right-hand-side border
 //
 typedef struct
 {
@@ -31,14 +39,25 @@ typedef struct
 }
 Glyph;
 
+// glyph_data:  A big stream of pairs of bits, queued first up the glyph and
+//              then across.  New glyphs start on a byte boundary so that
+//              Glyph.data need only be capable of indexing bytes rather than
+//              pairs of bits within bytes.
+//              FIXME: It would be straightforward for Glyph.data to be capable
+//              of sub-byte addressing and would save ~ 48 bytes typically, at
+//              the acceptable cost of capping glyph data at 16K ( or 8K for a
+//              b&w typeface)
+// absent_code: The code point to substitute when this typeface doesn't support
+//              the requested code point.  Typically the code point maps to a
+//              glyph that is a rectangle
 typedef struct
 {
-  u8           height;  // number of pixels up each glyph cell
+  u8           height;           // The number of pixels up each glyph cell
   u8           first_character;  // ASCII encoding of first glyph
-  u16          glyphs;  // number of glyphs
-  Glyph const *glyph;
+  u16          glyphs;           // The number of glyphs in the "glyph" array
+  Glyph const *glyph;            // The details required to render each glyph
   u8    const *glyph_data;
-  u8           absent_code; // the code for the glyph to show when this font doesn't support the requested code point
+  u8           absent_code;
 }
 Font;
 
@@ -64,6 +83,9 @@ void text_color( u16 foreground_color, u16 background_color)
 // i.e. a column of background color on the left and right, "lift" rows of
 // background color at the bottom and rows of background color at the top to
 // pad to font.height.
+//
+// This *could* return the width of the rendered text but it wouldn't be used
+// in most cases but would slow it down in all cases
 //
 extern
 void render_text( char const *text, u16 left, u16 bottom)

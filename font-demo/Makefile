@@ -3,7 +3,10 @@
 
 NAME = font-demo
 
-PARTS = font.o main.o
+FONT_TYPE = bw
+#FONT_TYPE = gray4
+
+PARTS = font.o nice_font_$(FONT_TYPE).o main.o
 
 DELIVERABLES = PAGE18.HEX
 
@@ -11,7 +14,7 @@ DELIVERABLES = PAGE18.HEX
 LFLAGS = -L../support
 
 # "-I support" is so that make can find the DSO Quad platform files
-CFLAGS = -I../support -I../lib -I bw
+CFLAGS = -I../support -I../lib -I $(FONT_TYPE)
 
 # Processor type
 CFLAGS += -mcpu=cortex-m3 -mthumb -mno-thumb-interwork
@@ -40,7 +43,7 @@ OBJCOPY = arm-none-eabi-objcopy
 SIZE    = arm-none-eabi-size
 
 # Tell make where to find transitional files:
-VPATH = ../support:bw:$(TDIR)
+VPATH = ../support:$(FONT_TYPE):$(TDIR)
 
 # How to make .HEX files from .elf files:
 %.HEX: %.elf

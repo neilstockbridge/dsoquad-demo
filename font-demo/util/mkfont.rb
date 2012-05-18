@@ -42,12 +42,12 @@ end
 
 include Checking
 
-if ARGV.count != 1
-  $stderr.puts "Use: #{$0} variable-name"
+if ARGV.count != 2
+  $stderr.puts "Use: #{$0} variable-name bw|gray4"
   exit 1
 end
 
-variable_name = ARGV
+variable_name, format = ARGV
 
 glyph_sheet = PNM.p6_from $stdin
 
@@ -60,10 +60,15 @@ check_that  glyph_height.to_i == glyph_height
 max_glyph_width = max_glyph_width.to_i
 glyph_height = glyph_height.to_i
 
-glyph_data = []
+puts <<EOF
+
+#include "font.h"
+
+EOF
 
 puts "Glyph const  #{variable_name}_glyphs[] = {"
 
+bitstream = Bitstream.new
 (32..127).each do |code|
   row = (code - " "[0]) / 32
   col = (code - " "[0]) % 32
@@ -81,7 +86,7 @@ puts "Glyph const  #{variable_name}_glyphs[] = {"
       # towards the bottom of the screen)
       r, g, b = glyph_sheet.pixel_at  ox+x, oy+glyph_height-1-y
       color = (r >> 4 << 8) | (g >> 4 << 4) | ( b >> 4)
-      if 0xfff == color
+      if [0x555, 0xaaa, 0xfff].include? color
         lowest = ( y if lowest.nil?) || [ lowest, y].min
         highest = ( y if highest.nil?) || [ highest, y].max
         left = ( x if left.nil?) || [ left, x].min
@@ -101,24 +106,42 @@ puts "Glyph const  #{variable_name}_glyphs[] = {"
   width = (right + 1) - left
   #p [ left, right, lowest, highest]
   #p [ lift, width, height]
-  bs = Bitstream.new
+  # Compute the offset of the glyph data *before* adding to the stream
+  offset = (bitstream.length if "bw" == format) || (bitstream.length / 2)
   (0..width-1).each do |x|
     (0..height-1).each do |y|
       r, g, b = glyph_sheet.pixel_at  ox+x, oy+glyph_height-1-lift-y
       color = (r >> 4 << 8) | (g >> 4 << 4) | ( b >> 4)
       #print "%03x,"% color
-      bs << ( (1 if 0xfff == color) || 0 )
+      if "bw" == format
+        bitstream << ( (1 if 0xfff == color) || 0 )
+      else
+        encoded = [ 0x000, 0x555, 0xaaa, 0xfff].index( color) || 0
+        bitstream << (encoded & 0x1)
+        bitstream << (encoded >> 1)
+      end
     end
     #puts
   end
-  puts "  { data:0x%04x, width:%u, height:%u, lift:%u},"% [ glyph_data.length, width, height, lift]
-  glyph_data += bs.bytes
+  puts "  { data:0x%04x, width:%u, height:%u, lift:%u},"% [ offset, width, height, lift]
 end
+glyph_data = bitstream.bytes
 
 puts "};\n\n"
 
-puts "u8 const  #{variable_name}_data[] = {\n  %s\n};\n\n"% glyph_data.map{|b| "0x%02x"% b}.groups_of(16).reduce([]){|ar,g| ar + [("/* 0x%04x */ "% (16 * ar.count))+ g.join(", ")]
+puts "u8 const  #{variable_name}_data[] = {\n  %s\n};\n\n"% glyph_data.map{|b| "0x%02x"% b}.groups_of(16).reduce([]){|ar,g| ar + [("/* 0x%04x */ "% (8 * 16 * ar.count))+ g.join(", ")]
 }.join(",\n  ")
 
-puts "Font const  #{variable_name} = { height:#{glyph_height}, first_character:' ', glyphs:96, glyph:#{variable_name}_glyphs, glyph_data:#{variable_name}_data, absent_code:127};"
+puts <<EOF
+Font const  #{variable_name} =
+{
+  height:          #{glyph_height},
+  first_character: ' ',
+  glyphs:          96,
+  glyph:           #{variable_name}_glyphs,
+  glyph_data:      #{variable_name}_data,
+  absent_code:     127,
+};
+
+EOF
 

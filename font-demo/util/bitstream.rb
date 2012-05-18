@@ -9,7 +9,7 @@
 #
 class Bitstream
 
-  attr_reader :bytes
+  attr_reader :length, :bytes
 
   def initialize
     @bytes = []

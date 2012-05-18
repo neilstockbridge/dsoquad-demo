@@ -3,7 +3,10 @@
 
 NAME = font-demo
 
-PARTS = font.o main.o
+#FONT_TYPE=bw
+FONT_TYPE=gray4
+
+PARTS = font.o nice_font_$(FONT_TYPE).o main.o
 
 DELIVERABLES = $(NAME)
 
@@ -11,7 +14,7 @@ DELIVERABLES = $(NAME)
 LFLAGS = -L../support
 
 # "-I support" is so that make can find the DSO Quad platform files
-CFLAGS = -I../support -I../lib -I bw
+CFLAGS = -I../support -I../lib -I $(FONT_TYPE)
 CFLAGS += $(shell pkg-config --cflags sdl)
 
 # Optimization & debug settings
@@ -21,7 +24,7 @@ CFLAGS += -fno-common -Os -std=gnu99
 CFLAGS += -Wall -Wno-unused
 
 # Avoid including the Cortex-specific headers:
-CFLAGS += -D__CM3_CORE_H__ -D__IO= -D__I= # -D__STM32F10x_H
+CFLAGS += -D__EMULATED -D__CM3_CORE_H__ -D__IO= -D__I= # -D__STM32F10x_H
 
 CFLAGS += $(DEBUG)
 
@@ -37,7 +40,7 @@ TDIR = /tmp/$(NAME)
 PARTS += BIOS-emu.o
 
 # Tell make where to find transitional files:
-VPATH = ../support:bw:$(TDIR)
+VPATH = ../support:$(FONT_TYPE):$(TDIR)
 
 $(NAME): $(PARTS)
 	$(CC) $(CFLAGS) -o $@ $(PARTS) $(LFLAGS) $(LIBS)
@@ -49,11 +52,11 @@ $(NAME): $(PARTS)
 .S.o: | $(TDIR)
 	$(CC) $(AFLAGS) -c -o $@ $<
 
-all: $(DELIVERABLES) main.c bw/font.c
+all: $(DELIVERABLES) main.c $(FONT_TYPE)/font.c
 
 $(TDIR):
 	mkdir $(TDIR)
 
 clean:
-	rm -f *.o bw/font.o $(TDIR)/*.o $(TDIR)/*.map $(DELIVERABLES)
+	rm -f *.o $(FONT_TYPE)/font.o $(TDIR)/*.o $(TDIR)/*.map $(DELIVERABLES)
 

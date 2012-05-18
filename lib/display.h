@@ -3,6 +3,9 @@
 #define __DISPLAY_H
 
 
+#include "BIOS.h"
+
+
 #define  BLACK  0x0000
 #define  WHITE  0xffff
 
