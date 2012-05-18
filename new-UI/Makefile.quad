@@ -13,7 +13,7 @@ LFLAGS = -L../support
 #LIBS = -lm
 
 # "-I support" is so that make can find the DSO Quad platform files
-CFLAGS = -I../support -I../lib -I../font-demo/bw
+CFLAGS = -I../support -I../lib -I../font-demo/gray4
 
 # Processor type
 CFLAGS += -mcpu=cortex-m3 -mthumb -mno-thumb-interwork
@@ -44,7 +44,7 @@ OBJCOPY = arm-none-eabi-objcopy
 SIZE    = arm-none-eabi-size
 
 # Tell make where to find transitional files:
-VPATH = ../support:../lib:../font-demo/bw:$(TDIR)
+VPATH = ../support:../lib:../font-demo/gray4:$(TDIR)
 
 # How to make .HEX files from .elf files:
 %.HEX: %.elf

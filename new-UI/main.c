@@ -116,7 +116,12 @@ void USB_LP_CAN_RX0_IRQHandler(void)
 
 s8  screen_brightness    = 80;
 s8  beep_volume          = 30;
+u8  generator_waveform   = 0;
+u8  generator_frequency  = 0;
 s8  generator_duty_cycle = 50;
+
+u8  trigger_source = 0;
+u8  trigger_condition = 0;
 
 
 u8 static selected_value( SelectContext *ct)
@@ -150,7 +155,13 @@ void generator_duty_cycle_changed()
 PERCENT_CONTEXT( generator_duty_cycle, 50, 90);
 
 
+typedef void (SelectionChangeHandler)( SelectContext *ct);
+
 #define  SELECT_CONTEXT( var)  SelectContext  var##_context = { option:var##_options, options:ITEMS_IN_ARRAY(var##_options), selected:0, update:var##_changed }
+
+// The context needs to refer to the "changed" method and the methods need to
+// refer to the contexts, so one or the other has to be forward declared:
+//SelectionChangeHandler  trigger_source_changed, trigger_condition_changed;
 
 SelectOption const coupling_options[] =
 {
@@ -211,6 +222,7 @@ SelectOption const time_per_div_options[] =
   { label:"1s", value: 0 },
 };
 
+
 SelectOption const trigger_source_options[] =
 {
   { label:"Ch A", value: 0x00 },
@@ -219,6 +231,13 @@ SelectOption const trigger_source_options[] =
   { label:"Ch D", value: 0x18 },
   { label:"Unco", value: 0x20 },
 };
+void static setup_trigger();
+void trigger_source_changed( SelectContext *ct)
+{
+  trigger_source = selected_value( ct);
+  setup_trigger();
+}
+SELECT_CONTEXT( trigger_source);
 
 SelectOption const trigger_condition_options[] =
 {
@@ -231,6 +250,13 @@ SelectOption const trigger_condition_options[] =
   { label:"TH < dT", value: 6 },
   { label:"TH > dT", value: 7 },
 };
+void trigger_condition_changed( SelectContext *ct)
+{
+  trigger_condition = selected_value( ct);
+  setup_trigger();
+}
+SELECT_CONTEXT( trigger_condition);
+
 
 SelectOption const buffer_size_options[] =
 {
@@ -257,6 +283,12 @@ SelectOption const generator_waveform_options[] =
   { label:"sawtooth", value: 0 },
   { label:"sine", value: 0 },
 };
+void static generator_waveform_changed( SelectContext *ct)
+{
+  // FIXME: Use generic code to copy the selected value to the variable and store the address of the variable in the context
+  generator_waveform = selected_value( ct);
+}
+SELECT_CONTEXT( generator_waveform);
 
 SelectOption const generator_frequency_options[] =
 {
@@ -272,12 +304,20 @@ SelectOption const generator_frequency_options[] =
   { label:"10kHz", value: 0 },
   { label:"20kHz", value: 0 },
 };
-
-void trigger_source_changed( SelectContext *ct)
+void static generator_frequency_changed( SelectContext *ct)
 {
+  generator_frequency = selected_value( ct);
 }
+SELECT_CONTEXT( generator_frequency);
 
-SELECT_CONTEXT( trigger_source);
+
+// Invoked when either of the two trigger parameters are changed
+void static setup_trigger()
+{
+  u8  trigger_details = trigger_source | trigger_condition;
+  printf("tg:%02x\n", trigger_details);
+  __Set( TRIGG_MODE, trigger_details);
+}
 
 
 int main()

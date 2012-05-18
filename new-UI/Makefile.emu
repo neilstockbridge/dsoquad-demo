@@ -11,7 +11,7 @@ DELIVERABLES = $(NAME)
 LFLAGS = -L../support
 
 # "-I support" is so that make can find the DSO Quad platform files
-CFLAGS = -I../support -I../lib -I../font-demo/bw
+CFLAGS = -I../support -I../lib -I../font-demo/gray4
 CFLAGS += $(shell pkg-config --cflags sdl)
 
 # Optimization & debug settings
@@ -37,7 +37,7 @@ TDIR = /tmp/$(NAME)
 PARTS += BIOS-emu.o
 
 # Tell make where to find transitional files:
-VPATH = ../support:../lib:../font-demo/bw:$(TDIR)
+VPATH = ../support:../lib:../font-demo/gray4:$(TDIR)
 
 $(NAME): $(PARTS)
 	$(CC) $(CFLAGS) -o $@ $(PARTS) $(LFLAGS) $(LIBS)
@@ -55,5 +55,5 @@ $(TDIR):
 	mkdir $(TDIR)
 
 clean:
-	rm -f *.o ../font-demo/bw/font.o $(TDIR)/*.o $(TDIR)/*.map $(DELIVERABLES)
+	rm -f *.o ../font-demo/gray4/font.o $(TDIR)/*.o $(TDIR)/*.map $(DELIVERABLES)
 

@@ -9,6 +9,13 @@
 
 #include "stm32f10x.h"
 
+
+#ifdef __EMULATED
+extern void __enable_irq();
+extern void __disable_irq();
+#endif
+
+
 //============================= Flash space allocation =================================
 
 #define BIN_BASE                ((u32)(0x0802C000)) // Size < 68KB  
