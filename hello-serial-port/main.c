@@ -107,7 +107,7 @@ bool static received_data_is_waiting()
 
 // Provides the next character that has been received.
 //
-char next_received_char()
+char static next_received_char()
 {
   char  ch = received.byte[ received.oldest];
   __disable_irq();
