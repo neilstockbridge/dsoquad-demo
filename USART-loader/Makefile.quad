@@ -1,0 +1,12 @@
+
+NAME := USART-loader
+
+PARTS = hex.o hex_file.o main.o
+
+include ../support/Cortex-M3.mk
+
+DELIVERABLES := PAGE24.HEX
+
+all: $(DELIVERABLES)
+	if [ -e PAGE30.elf ]; then $(SIZE) PAGE30.elf; fi
+

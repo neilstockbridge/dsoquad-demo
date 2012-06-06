@@ -1,0 +1,37 @@
+
+NAME := test
+
+PARTS = hex_file.o test.o
+
+.SILENT:
+
+# The directory for .o files and such.  Keep it in RAM for speed and to reduce
+# flash disc wear
+TDIR = /tmp/$(NAME)
+
+CFLAGS += -fno-common -Os -std=gnu99 $(DEBUG) -ffunction-sections # Optimization and debug settings
+CFLAGS += -Wall -Wno-unused # Compiler warnings
+CFLAGS += -I../support -I../lib # so that make can find the DSO Quad platform files
+CFLAGS += -D__EMULATED
+
+LFLAGS += -L../support # helps the linker find the .lds files
+LFLAGS += -Wl,-gc-sections
+
+# Tell make where to find referenced files that are not in the current directory:
+VPATH = ../support:../lib:$(TDIR)
+
+# Rebuild all parts if any header or the Makefile changes:
+.c.o: *.h Makefile.Ubuntu
+	$(CC) $(CFLAGS) -c -o $(TDIR)/$@ $<
+
+all: $(NAME)
+
+$(TDIR):
+	mkdir $(TDIR)
+
+$(NAME): $(PARTS)
+	$(CC) $(CFLAGS) -o $@ $(PARTS:%=$(TDIR)/%) $(LFLAGS)
+
+clean:
+	rm -f $(TDIR)/*.o $(NAME)
+
