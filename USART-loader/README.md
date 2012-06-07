@@ -7,6 +7,13 @@ USART-loader installs to slot 4 by default so that it starts when you power on t
 
 Your app must have been linked so that all sections (`.text`, `.data` and `.bss`) reside between `0x20003000` and `0x2000b000` ( a 32K block).  Any data from the hex file that lies outside this region is silently discarded.  The stack ( 4K) grows down from the end of RAM at `0x2000c000` ( 48K) and the bottom 12K is reserved by SYS.
 
+## Usage
+
+Power on the Quad with button 4 held down, then:
+
+    PORT=/dev/ttyUSB0
+    stty -F $PORT 115200
+    cat RAM.HEX > $PORT
 
 ## Limitations
 
